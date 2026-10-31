@@ -1,0 +1,52 @@
+APLICATIVO DO SISTEMA SINTCOM-PR (instalável no celular)
+=========================================================
+
+O que é: uma "casca" de aplicativo (PWA) que abre o sistema do Google Apps Script
+em tela cheia, com o ícone e o nome do SINTCOM-PR. Os dados continuam só no Google;
+o aplicativo não guarda nenhum dado de sindicalizado.
+
+ARQUIVOS
+  index.html             -> a página do aplicativo (é aqui que vai o endereço do sistema)
+  manifest.webmanifest   -> nome, cores e ícones do aplicativo
+  sw.js                  -> permite instalar e mostra o aviso "sem internet"
+  icones/                -> ícones feitos a partir do selo do SINTCOM-PR
+
+PASSO 1 – Colocar o endereço do sistema
+  1. No Apps Script: Implantar > Gerenciar implantações > copie a "URL do app da Web"
+     (começa com https://script.google.com/macros/s/ e termina em /exec).
+  2. Abra o index.html num editor de texto (Bloco de Notas serve) e troque
+     COLE_AQUI_A_URL_DO_APP_DA_WEB pelo endereço copiado. Salve.
+  IMPORTANTE: ao publicar versões novas do sistema, use sempre
+  Gerenciar implantações > Editar (lápis) > Versão: Nova versão.
+  Assim o endereço não muda. "Nova implantação" cria outro endereço e o aplicativo
+  continuaria abrindo o antigo.
+
+PASSO 2 – Publicar o aplicativo (GitHub Pages – gratuito)
+  1. Crie uma conta em github.com (pode usar o e-mail do sindicato).
+  2. Clique em "New repository", nome: app-sintcompr, marque "Public", e crie.
+  3. Clique em "uploading an existing file" e arraste TODOS os arquivos desta pasta
+     (index.html, manifest.webmanifest, sw.js, LEIA-ME.txt e a pasta icones).
+     Clique em "Commit changes".
+  4. Vá em Settings > Pages > Source: "Deploy from a branch",
+     Branch: main / (root) > Save.
+  5. Em 1 ou 2 minutos o endereço aparece no alto da página, algo como:
+        https://NOME-DA-CONTA.github.io/app-sintcompr/
+  Esse é o endereço que vai para os diretores.
+  (O repositório público contém só esta casca: nenhum dado e nenhuma senha.)
+
+PASSO 3 – Instalar no celular (mandar para os diretores)
+  ANDROID (Chrome):
+    abra o endereço no Chrome > toque em "Instalar" no aviso que aparece embaixo
+    (ou menu ⋮ > "Instalar app" / "Adicionar à tela inicial").
+  IPHONE (Safari):
+    abra o endereço no Safari > botão Compartilhar (quadrado com seta para cima)
+    > "Adicionar à Tela de Início" > Adicionar.
+  O ícone do SINTCOM-PR aparece na tela inicial e o sistema abre em tela cheia.
+
+BOM SABER
+  - Precisa de internet (o sistema mora no Google). Sem conexão aparece um aviso.
+  - Atualizações do sistema chegam sozinhas: basta publicar a nova versão no Apps Script.
+  - No iPhone, o Safari pode pedir o login de novo cada vez que o aplicativo é reaberto
+    (regra de privacidade da Apple para sistemas abertos dentro de outro site).
+    No Android o login continua valendo pelas 6 horas da sessão.
+  - Marca d'água, bloqueio de impressão e todas as permissões continuam iguais.
