@@ -1,4 +1,4 @@
-x<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -11,7 +11,7 @@ x<!DOCTYPE html>
   No Apps Script: Implantar > Gerenciar implantações > copie a "URL do app da Web" (termina em /exec).
 -->
 <script>
-  var URL_SISTEMA = https://script.google.com/macros/s/AKfycbyTMIDrxPODQFBAyDz3JAdmjpqJem6Ph3kzzP9GV8Nq_nEzrlc1NogXl4eNil9S_zBd/exec;
+  var URL_SISTEMA = 'https://script.google.com/macros/s/AKfycbyTMIDrxPODQFBAyDz3JAdmjpqJem6Ph3kzzP9GV8Nq_nEzrlc1NogXl4eNil9S_zBd/exec';
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SINTCOM-PR</title>
@@ -78,6 +78,7 @@ x<!DOCTYPE html>
     <img src="icones/icone-512.png" alt="Selo do SINTCOM-PR">
     <h1>Falta configurar</h1>
     <p>Abra o arquivo <b>index.html</b> e cole em <b>URL_SISTEMA</b> o endereço do app da Web do Apps Script (termina em <b>/exec</b>).</p>
+    <p class="oculto" id="semConfigDica" style="color:#b42318"><b>A linha do endereço está com erro.</b> O endereço precisa ficar entre aspas simples e terminar com ponto e vírgula, assim:<br><code style="font-size:12px;word-break:break-all">var URL_SISTEMA = 'https://script.google.com/macros/s/.../exec';</code></p>
   </div>
 </div>
 
@@ -94,11 +95,15 @@ x<!DOCTYPE html>
   var $ = function (id) { return document.getElementById(id); };
   var LIMITE_MS = 30000, timer = null, carregou = false, pedidoInstalacao = null;
 
+  if (typeof URL_SISTEMA === 'undefined') { var URL_SISTEMA = ''; var CONFIG_QUEBRADA = true; }
   function urlValida(u) { return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec/.test(u) || /^https:\/\/script\.google\.com\/a\/macros\/[^/]+\/s\/[A-Za-z0-9_-]+\/exec/.test(u); }
   function mostrar(id) { ['carregando', 'semInternet', 'semConfig'].forEach(function (t) { $(t).classList.toggle('oculto', t !== id); }); }
 
   function abrir() {
-    if (!urlValida(URL_SISTEMA)) { mostrar('semConfig'); return; }
+    if (!urlValida(URL_SISTEMA)) {
+      if (typeof CONFIG_QUEBRADA !== 'undefined') $('semConfigDica').classList.remove('oculto');
+      mostrar('semConfig'); return;
+    }
     if (!navigator.onLine) { mostrar('semInternet'); return; }
     carregou = false;
     mostrar('carregando');
