@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<!--
+  Aplicativo do Sistema SINTCOM-PR (PWA).
+  Esta página só abre o sistema do Google Apps Script em tela cheia, com ícone e nome próprios.
+  Os dados continuam no Google: nada fica guardado aqui.
+
+  >>> ÚNICA COISA A AJUSTAR: o endereço do sistema logo abaixo (URL_SISTEMA). <<<
+  No Apps Script: Implantar > Gerenciar implantações > copie a "URL do app da Web" (termina em /exec).
+-->
+<script>
+  var URL_SISTEMA = 'https://script.google.com/macros/s/AKfycbyTMIDrxPODQFBAyDz3JAdmjpqJem6Ph3kzzP9GV8Nq_nEzrlc1NogXl4eNil9S_zBd/exec';
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SINTCOM-PR</title>
+<meta name="description" content="Sistema da diretoria do SINTCOM-PR – uso restrito.">
+<meta name="theme-color" content="#1f3a5f">
+<meta name="robots" content="noindex, nofollow">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SINTCOM-PR">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icones/favicon-32.png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+<style>
+  :root { --azul: #1f3a5f; --azul2: #16293f; --texto: #1d2733; --suave: #5f6b7a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--azul); font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--texto); }
+  body { padding-top: env(safe-area-inset-top); }
+  #sistema { position: fixed; left: 0; right: 0; bottom: 0; top: env(safe-area-inset-top); width: 100%; height: calc(100% - env(safe-area-inset-top)); border: 0; background: #f3f5f8; }
+  .tela { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg, var(--azul), var(--azul2)); z-index: 5; }
+  .tela .caixa { background: #fff; border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .tela img { width: 132px; height: auto; }
+  .tela h1 { font-size: 20px; margin: 14px 0 6px; color: var(--azul); }
+  .tela p { margin: 6px 0; color: var(--suave); font-size: 15px; line-height: 1.45; }
+  .giro { width: 28px; height: 28px; border: 3px solid #d8dfe8; border-top-color: var(--azul); border-radius: 50%; margin: 16px auto 0; animation: g 0.9s linear infinite; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  .btn { display: inline-block; margin-top: 14px; padding: 11px 18px; border-radius: 10px; border: 0; background: var(--azul); color: #fff; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; }
+  .oculto { display: none !important; }
+  #instalar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 8px 28px rgba(0,0,0,.28); display: flex; gap: 12px; align-items: center; max-width: 520px; margin: 0 auto; }
+  #instalar img { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+  #instalar .txt { flex: 1; font-size: 14px; line-height: 1.4; color: var(--texto); }
+  #instalar .txt b { display: block; font-size: 15px; }
+  #instalar .acoes { display: flex; flex-direction: column; gap: 6px; }
+  #instalar .acoes .btn { margin: 0; padding: 9px 14px; font-size: 14px; }
+  #instalar .fechar { background: none; border: 0; color: var(--suave); font: inherit; font-size: 13px; cursor: pointer; padding: 4px; }
+  .ios-passo { display: inline-block; padding: 0 4px; border: 1px solid #d8dfe8; border-radius: 6px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<iframe id="sistema" title="Sistema SINTCOM-PR" allow="camera; microphone; geolocation; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+<div class="tela" id="carregando">
+  <div class="caixa">
+    <img src="icones/icone-512.png" alt="Selo do SINTCOM-PR">
+    <h1>SINTCOM-PR</h1>
+    <p id="carregandoMsg">Abrindo o sistema…</p>
+    <div class="giro" id="giro"></div>
+    <button class="btn oculto" id="tentar" onclick="abrir()">Tentar de novo</button>
+  </div>
+</div>
+
+<div class="tela oculto" id="semInternet">
+  <div class="caixa">
+    <img src="icones/icone-512.png" alt="Selo do SINTCOM-PR">
+    <h1>Sem internet</h1>
+    <p>O sistema precisa de conexão para funcionar. Confira o Wi-Fi ou os dados móveis.</p>
+    <button class="btn" onclick="abrir()">Tentar de novo</button>
+  </div>
+</div>
+
+<div class="tela oculto" id="semConfig">
+  <div class="caixa">
+    <img src="icones/icone-512.png" alt="Selo do SINTCOM-PR">
+    <h1>Falta configurar</h1>
+    <p>Abra o arquivo <b>index.html</b> e cole em <b>URL_SISTEMA</b> o endereço do app da Web do Apps Script (termina em <b>/exec</b>).</p>
+    <p class="oculto" id="semConfigDica" style="color:#b42318"><b>A linha do endereço está com erro.</b> O endereço precisa ficar entre aspas simples e terminar com ponto e vírgula, assim:<br><code style="font-size:12px;word-break:break-all">var URL_SISTEMA = 'https://script.google.com/macros/s/.../exec';</code></p>
+  </div>
+</div>
+
+<div id="instalar" class="oculto">
+  <img src="icones/icone-192.png" alt="">
+  <div class="txt" id="instalarTxt"></div>
+  <div class="acoes">
+    <button class="btn oculto" id="instalarBtn">Instalar</button>
+    <button class="fechar" onclick="fecharInstalar()">Agora não</button>
+  </div>
+</div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var LIMITE_MS = 30000, timer = null, carregou = false, pedidoInstalacao = null;
+
+  if (typeof URL_SISTEMA === 'undefined') { var URL_SISTEMA = ''; var CONFIG_QUEBRADA = true; }
+  function urlValida(u) { return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec/.test(u) || /^https:\/\/script\.google\.com\/a\/macros\/[^/]+\/s\/[A-Za-z0-9_-]+\/exec/.test(u); }
+  function mostrar(id) { ['carregando', 'semInternet', 'semConfig'].forEach(function (t) { $(t).classList.toggle('oculto', t !== id); }); }
+
+  function abrir() {
+    if (!urlValida(URL_SISTEMA)) {
+      if (typeof CONFIG_QUEBRADA !== 'undefined') $('semConfigDica').classList.remove('oculto');
+      mostrar('semConfig'); return;
+    }
+    if (!navigator.onLine) { mostrar('semInternet'); return; }
+    carregou = false;
+    mostrar('carregando');
+    $('carregandoMsg').textContent = 'Abrindo o sistema…';
+    $('giro').classList.remove('oculto'); $('tentar').classList.add('oculto');
+    $('sistema').src = URL_SISTEMA;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (carregou) return;
+      $('carregandoMsg').textContent = 'A conexão está lenta. Se demorar muito, tente de novo.';
+      $('giro').classList.add('oculto'); $('tentar').classList.remove('oculto');
+    }, LIMITE_MS);
+  }
+  $('sistema').addEventListener('load', function () {
+    if (!$('sistema').getAttribute('src')) return;
+    carregou = true; clearTimeout(timer);
+    // a tela do sistema leva um instante para desenhar depois do "load"
+    setTimeout(function () { $('carregando').classList.add('oculto'); }, 600);
+  });
+  window.addEventListener('online', function () { if (!$('semInternet').classList.contains('oculto')) abrir(); });
+  window.addEventListener('offline', function () { if (!carregou) mostrar('semInternet'); });
+
+  /* ---------- convite para instalar ---------- */
+  function jaInstalado() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+  function lembrar(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function fecharInstalar() { $('instalar').classList.add('oculto'); lembrar('sintcompr_instalar_fechado', String(Date.now())); }
+  function podeConvidar() {
+    if (jaInstalado()) return false;
+    var f = Number(lembrar('sintcompr_instalar_fechado') || 0);
+    return !f || Date.now() - f > 7 * 864e5;   // volta a sugerir depois de 7 dias
+  }
+  var ua = navigator.userAgent || '';
+  var ehIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); pedidoInstalacao = e;
+    if (!podeConvidar()) return;
+    $('instalarTxt').innerHTML = '<b>Instale o aplicativo</b>Fica com ícone na tela inicial e abre em tela cheia.';
+    $('instalarBtn').classList.remove('oculto');
+    $('instalar').classList.remove('oculto');
+  });
+  $('instalarBtn').addEventListener('click', function () {
+    if (!pedidoInstalacao) return;
+    pedidoInstalacao.prompt();
+    pedidoInstalacao.userChoice.then(function () { pedidoInstalacao = null; $('instalar').classList.add('oculto'); });
+  });
+  window.addEventListener('appinstalled', function () { $('instalar').classList.add('oculto'); });
+  if (ehIOS && podeConvidar()) {
+    var safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|GSA/.test(ua);
+    $('instalarTxt').innerHTML = safari
+      ? '<b>Instale no iPhone</b>Toque em <span class="ios-passo">Compartilhar</span> (quadrado com seta) e depois em <span class="ios-passo">Adicionar à Tela de Início</span>.'
+      : '<b>Instale no iPhone</b>Abra este endereço no <b>Safari</b> e toque em Compartilhar → Adicionar à Tela de Início.';
+    setTimeout(function () { $('instalar').classList.remove('oculto'); }, 2500);
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  abrir();
+</script>
+</body>
+</html>
