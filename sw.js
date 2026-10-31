@@ -1,7 +1,7 @@
 /* Service worker do aplicativo SINTCOM-PR.
  * Guarda só a "casca" do aplicativo (esta página e os ícones) para abrir rápido e mostrar o aviso
  * de "sem internet". Os dados do sistema NUNCA são guardados aqui: vêm sempre do Google. */
-const CACHE = 'sintcompr-app-v1';
+const CACHE = 'sintcompr-app-v2';
 const CASCA = ['./', './index.html', './manifest.webmanifest', './icones/icone-192.png', './icones/icone-512.png',
   './icones/icone-maskable-512.png', './icones/apple-touch-icon.png', './icones/favicon-32.png'];
 
